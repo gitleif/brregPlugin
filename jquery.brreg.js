@@ -1,6 +1,6 @@
 /*!
  * jQuery Plugin: bbreg Plugin (Norwegian Company lookups)
- * https://github.com/codedance/jquery.AreYouSure/
+ * https://github.com/leifen80/brregPlugin/
  *
  * Copyright (c) 2018, Leif Nesheim and Systemsmia DA http://www.systemsmia.no/
  * Dual licensed under the MIT or GPL Version 2 licenses.

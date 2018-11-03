@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8">
+  <title>jquery.brreg.js Test</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="jquery.brreg.js"></script>
+
+    <script type="text/javascript">
+        // Få opp maks 10 treff
+        var settings = {size:10};
+        
+        // Instansier plugin
+        var myBRREG = new brregPlugin(settings);
+        
+          // Hent ut alle firma som starter med "Data, legg resultat i div firmasok
+        myBRREG.getCompanies("Data",
+            function(data)
+            {
+                var arrayLength = data.length;
+                for (var i = 0; i < arrayLength; i++) {
+                    $("#firmasok").append(data[i].label + " (orgid: " + data[i].id + ")<br>");
+                }
+            }
+            
+            );
+        
+        // Hent ut informasjon om et spesiellt firma (eks: Coca Cola Norge).
+        myBRREG.getCompany("998942985",
+            function(data)
+            {
+                // Data er hentet ut, legg inn noen utvalgte data i diven firmainfo
+                $("#firmainfo").append("Adresse: " + data.forretningsadresse.adresse + "<br>");
+                $("#firmainfo").append("Postnummer: " + data.forretningsadresse.postnummer + "<br>");
+                $("#firmainfo").append("Poststed: " + data.forretningsadresse.poststed + "<br>");
+            });
+
+        // Henter ut info om Hordaland Fylkeskommune kan motta EHF Faktura/kreditnota
+        myBRREG.getCompanyEHF("938626367",
+            function(data)
+            {
+                console.log(data);
+                // Data er hentet ut, legg inn noen utvalgte data i diven firmainfo
+                $("#ehfinfo").append("Kan motta EHF_Invoice: " + data.ehf_invoice_2 + "<br>");
+                $("#ehfinfo").append("Kan motta EHF_Kreditnota: " + data.ehf_creditnote_2 + "<br>");
+            });                         
+                       
+    </script>
+</head>
+
+<body>
+    <h1>Enkel test av jquery-brreg.js Plugin</h1>
+    Informasjonen blir hentet fra brreg.no.
+    
+    <h2>Hent ut maks 10 firma, der firmanavn starter med "Data"</h2>
+    <div id="firmasok">
+        
+    </div>
+
+    <h2>Viser litt av firmainformasjon om Coca Cola, orgnr: 998942985</h2>
+    <div id="firmainfo">
+    </div>
+
+    <h2>Henter og viser litt EHF informasjon om Hordaland Fylkeskommune, orgnr: 938626367 </h2>
+    <div id="ehfinfo">
+    </div>
+    
+    
+    
+</body>
+</html>

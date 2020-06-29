@@ -2,7 +2,7 @@
  * jQuery Plugin: bbreg Plugin (Norwegian Company lookups)
  * https://github.com/gitleif/brregPlugin/
  *
- * Copyright (c) 2018, Leif Nesheim and Systemsmia DA http://www.systemsmia.no/
+ * Copyright (c) 2018-2020, Leif Nesheim and Systemsmia DA http://www.systemsmia.no/
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://jquery.org/license
  *
@@ -20,15 +20,24 @@
 // Create an immediately invoked functional expression to wrap our code
 (function()
  {
-  
+  // Added 24042020 -> IE->if StartsWith not exist
+  if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(searchString, position) {
+      position = position || 0;
+      return this.indexOf(searchString, position) === position;
+    };
+  }
+
+
   // Define our constructor
   this.brregPlugin = function()
   {
 
     // Define option defaults
+    //filter:"startswith(navn,'%req%')"
     var defaults = {
       size: 30,
-      filter:"startswith(navn,'%req%')"
+      filter:"%req%"
     };
 
     // Create options by extending defaults with the passed in arugments
@@ -46,18 +55,21 @@
     // This returns all companies matching the filter to the callback func
     this.getCompanies = function(request, callback)
     {
-          var $filter = ("?$filter=" + this.options.filter.replace("%req%", request) + "&size=" +this.options.size);          
-          var obj = $.getJSON( "https://data.brreg.no/enhetsregisteret/enhet.json" + $filter,                                                          
+          var $filter = ("?navn=" + this.options.filter.replace("%req%", encodeURIComponent(request)) + "&size=" +this.options.size);
+          var obj = $.getJSON( "https://data.brreg.no/enhetsregisteret/api/enheter" + $filter,
+                              
           function(jsonres)
           {
+            
                var ret = [];                    
-               if(typeof jsonres.data !== 'undefined')
+               if(typeof jsonres._embedded !== 'undefined')
                {
-                    for (var i = 0; i <  jsonres.data.length; i++)
+                    for (var i = 0; i <  jsonres._embedded.enheter.length; i++)
                     {
-                         if(jsonres.data[i].underAvvikling=="N") // Slik at ein kun får opp firma som er aktive
+                        var enhet = jsonres._embedded.enheter[i];                        
+                         if(enhet.underAvvikling==false && enhet.navn.startsWith(request.toUpperCase())) // Slik at ein kun får opp firma som er aktive
                          {
-                              ret.push({"label":fixPublisherName(jsonres.data[i].navn), "id":jsonres.data[i].organisasjonsnummer});
+                              ret.push({"label":fixPublisherName(enhet.navn), "id":enhet.organisasjonsnummer});
                          }
                     }
                }
@@ -69,9 +81,9 @@
     // requested company.
     this.getCompany = function(organizationID, callback)
     {
-        var obj = $.getJSON( "https://data.brreg.no/enhetsregisteret/enhet/" + encodeURIComponent(organizationID) + ".json",
+        var obj = $.getJSON( "https://data.brreg.no/enhetsregisteret/api/enheter/" + encodeURIComponent(organizationID),
         function(jsonres)
-        {          
+        {
             if(jsonres!=null || jsonres!=="undefined")
             {
                 // Change the uppertext style
@@ -94,7 +106,8 @@
     {
         if(organizationID.toString().length==9 && isNaN(parseFloat(organizationID))==false)
         {
-            $.getJSON('https://hotell.difi.no/api/json/difi/elma/capabilities?query=' + encodeURIComponent(organizationID),                                                          
+          //$.getJSON('https://hotell.difi.no/api/json/difi/elma/capabilities?query=' + encodeURIComponent(organizationID),                                                          
+            $.getJSON('https://hotell.difi.no/api/json/difi/elma/participants?PEPPOLBIS_3_0_BILLING_01_UBL=Ja&query=' + encodeURIComponent(organizationID),
             function(jsonres)
             {
                   // Std settings
@@ -127,4 +140,6 @@
     {
         return(decodeURI(capitalizeFirstLetter(string)));
     }
+    
+    
 }());
